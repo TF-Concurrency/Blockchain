@@ -16,32 +16,20 @@ class Transaction {
     this.timestamp = Date.now();
   }
 
-  /**
-   * Creates a SHA256 hash of the transaction
-   *
-   * @returns {string}
-   */
+  
   calculateHash() {
     return crypto.createHash('sha256').update(this.fromAddress + this.toAddress + this.dni + this.timestamp).digest('hex');
   }
 
-  /**
-   * Signs a transaction with the given signingKey (which is an Elliptic keypair
-   * object that contains a private key). The signature is then stored inside the
-   * transaction object and later stored on the blockchain.
-   *
-   * @param {string} signingKey
-   */
+  
   signTransaction(signingKey) {
-    // You can only send a transaction from the wallet that is linked to your
-    // key. So here we check if the fromAddress matches your publicKey
+    
     if (signingKey.getPublic('hex') !== this.fromAddress) {
       throw new Error('You cannot sign transactions for other wallets!');
     }
     
 
-    // Calculate the hash of this transaction, sign it with the key
-    // and store it inside the transaction object
+   
     const hashTx = this.calculateHash();
     const sig = signingKey.sign(hashTx, 'base64');
 
@@ -55,9 +43,7 @@ class Transaction {
    * @returns {boolean}
    */
   isValid() {
-    // If the transaction doesn't have a from address we assume it's a
-    // mining reward and that it's valid. You could verify this in a
-    // different way (special field for instance)
+    
     if (this.fromAddress === null) return true;
 
     if (!this.signature || this.signature.length === 0) {
@@ -191,19 +177,15 @@ class Blockchain {
       throw new Error('Transaction dni should be > 0');
     }
     
-    // Making sure that the amount sent is not greater than existing balance
     const walletBalance = this.getBalanceOfAddress(transaction.fromAddress);
     if (walletBalance < transaction.dni) {
       throw new Error('Not enough balance');
     }
 
-    // Get all other pending transactions for the "from" wallet
     const pendingTxForWallet = this.pendingTransactions
       .filter(tx => tx.fromAddress === transaction.fromAddress);
 
-    // If the wallet has more pending transactions, calculate the total amount
-    // of spend coins so far. If this exceeds the balance, we refuse to add this
-    // transaction.
+    
     if (pendingTxForWallet.length > 0) {
       const totalPendingDni = pendingTxForWallet
         .map(tx => tx.dni)
@@ -275,16 +257,14 @@ class Blockchain {
    * @returns {boolean}
    */
   isChainValid() {
-    // Check if the Genesis block hasn't been tampered with by comparing
-    // the output of createGenesisBlock with the first block on our chain
+  
     const realGenesis = JSON.stringify(this.createGenesisBlock());
 
     if (realGenesis !== JSON.stringify(this.chain[0])) {
       return false;
     }
 
-    // Check the remaining blocks on the chain to see if there hashes and
-    // signatures are correct
+    
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
