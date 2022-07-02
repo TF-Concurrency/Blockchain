@@ -7,12 +7,12 @@ class Transaction {
   /**
    * @param {string} fromAddress
    * @param {string} toAddress
-   * @param {string} name
+   * @param {number} dni
    */
-  constructor(fromAddress, toAddress, name) {
+  constructor(fromAddress, toAddress, dni) {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
-    this.name = name;
+    this.dni = dni;
     this.timestamp = Date.now();
   }
 
@@ -22,7 +22,7 @@ class Transaction {
    * @returns {string}
    */
   calculateHash() {
-    return crypto.createHash('sha256').update(this.fromAddress + this.toAddress + this.name + this.timestamp).digest('hex');
+    return crypto.createHash('sha256').update(this.fromAddress + this.toAddress + this.dni + this.timestamp).digest('hex');
   }
 
   /**
@@ -187,13 +187,13 @@ class Blockchain {
       throw new Error('Cannot add invalid transaction to chain');
     }
     
-    if (transaction.name == null) {
-      throw new Error('Transaction name should be an string');
+    if (transaction.dni == null) {
+      throw new Error('Transaction dni should be > 0');
     }
     
     // Making sure that the amount sent is not greater than existing balance
     const walletBalance = this.getBalanceOfAddress(transaction.fromAddress);
-    if (walletBalance < transaction.name) {
+    if (walletBalance < transaction.dni) {
       throw new Error('Not enough balance');
     }
 
@@ -205,12 +205,12 @@ class Blockchain {
     // of spend coins so far. If this exceeds the balance, we refuse to add this
     // transaction.
     if (pendingTxForWallet.length > 0) {
-      const totalPendingName = pendingTxForWallet
-        .map(tx => tx.name)
+      const totalPendingDni = pendingTxForWallet
+        .map(tx => tx.dni)
         .reduce((prev, curr) => prev + curr);
 
-      const totalName = totalPendingName + transaction.name;
-      if (totalName > walletBalance) {
+      const totalDni = totalPendingDni + transaction.dni;
+      if (totalDni > walletBalance) {
         throw new Error('Pending transactions for this wallet is higher than its balance.');
       }
     }
@@ -224,19 +224,19 @@ class Blockchain {
    * Returns the balance of a given wallet address.
    *
    * @param {string} address
-   * @returns {string} The balance of the wallet
+   * @returns {number} The balance of the wallet
    */
   getBalanceOfAddress(address) {
-    let balance = "";
+    let balance = 0;
 
     for (const block of this.chain) {
       for (const trans of block.transactions) {
         if (trans.fromAddress === address) {
-          balance -= trans.name;
+          balance -= trans.dni;
         }
 
         if (trans.toAddress === address) {
-          balance += trans.name;
+          balance += trans.dni;
         }
       }
     }
