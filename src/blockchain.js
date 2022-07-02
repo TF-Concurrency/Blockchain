@@ -187,7 +187,7 @@ class Blockchain {
       throw new Error('Cannot add invalid transaction to chain');
     }
     
-    if (transaction.name <= 0) {
+    if (transaction.name == null) {
       throw new Error('Transaction name should be an string');
     }
     
@@ -224,10 +224,10 @@ class Blockchain {
    * Returns the balance of a given wallet address.
    *
    * @param {string} address
-   * @returns {number} The balance of the wallet
+   * @returns {string} The balance of the wallet
    */
   getBalanceOfAddress(address) {
-    let balance = 0;
+    let balance = "";
 
     for (const block of this.chain) {
       for (const trans of block.transactions) {
